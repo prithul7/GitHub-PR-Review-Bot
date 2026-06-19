@@ -1,14 +1,15 @@
 import os
 
-import anthropic
 import requests
+from google import genai
 
 
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
+GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 REPO = os.environ["GITHUB_REPOSITORY"]
 PR_NUMBER = os.environ["PR_NUMBER"]
 MAX_DIFF_CHARS = 8000
+GEMINI_MODEL = "gemini-3.5-flash"
 
 
 def get_pr_diff():
@@ -22,15 +23,11 @@ def get_pr_diff():
     return response.text
 
 
-def review_with_claude(diff):
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-    message = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=1024,
-        messages=[
-            {
-                "role": "user",
-                "content": f"""You are a senior software engineer doing a thorough code review. Review the following PR diff and provide:
+def review_with_gemini(diff):
+    client = genai.Client(api_key=GEMINI_API_KEY)
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=f"""You are a senior software engineer doing a thorough code review. Review the following PR diff and provide:
 
 1. **Summary** - What does this PR do? (2-3 sentences)
 2. **Potential bugs** - Any logic errors, edge cases, or security issues
@@ -47,10 +44,8 @@ Rules:
 
 PR Diff:
 {diff[:MAX_DIFF_CHARS]}""",
-            }
-        ],
     )
-    return message.content[0].text
+    return response.text
 
 
 def post_comment(review_text):
@@ -61,7 +56,7 @@ def post_comment(review_text):
     }
     body = (
         f"## AI PR Review\n\n{review_text}\n\n---\n"
-        "*Reviewed by Claude AI - [claude-sonnet-4-6]*"
+        f"*Reviewed by Gemini AI - [{GEMINI_MODEL}]*"
     )
     response = requests.post(url, headers=headers, json={"body": body})
     response.raise_for_status()
@@ -83,8 +78,8 @@ def main():
         return
 
     print(f"Diff length: {len(diff)} characters")
-    print("Sending to Claude for review...")
-    review = review_with_claude(diff)
+    print("Sending to Gemini for review...")
+    review = review_with_gemini(diff)
 
     print("Posting comment to PR...")
     post_comment(review)
