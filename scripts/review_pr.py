@@ -9,7 +9,7 @@ GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 REPO = os.environ["GITHUB_REPOSITORY"]
 PR_NUMBER = os.environ["PR_NUMBER"]
 MAX_DIFF_CHARS = 8000
-GEMINI_MODEL = "gemini-3.5-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
 
 
 def get_pr_diff():
