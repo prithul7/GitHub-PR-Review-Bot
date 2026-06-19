@@ -8,6 +8,7 @@ GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
 REPO = os.environ["GITHUB_REPOSITORY"]
 PR_NUMBER = os.environ["PR_NUMBER"]
+MAX_DIFF_CHARS = 8000
 
 
 def get_pr_diff():
@@ -45,7 +46,7 @@ Rules:
 - Keep the total review under 400 words.
 
 PR Diff:
-{diff[:8000]}""",
+{diff[:MAX_DIFF_CHARS]}""",
             }
         ],
     )
